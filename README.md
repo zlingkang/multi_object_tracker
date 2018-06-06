@@ -25,4 +25,4 @@ replaced with any detector you like.
 
 # Credits  
 * OpenCV LK optical flow  
-* Munkres (Hungarian) algorithm implementation: (https://github.com/soimy/munkres-opencv)[https://github.com/soimy/munkres-opencv]
+* Munkres (Hungarian) algorithm implementation: [https://github.com/soimy/munkres-opencv](https://github.com/soimy/munkres-opencv)
