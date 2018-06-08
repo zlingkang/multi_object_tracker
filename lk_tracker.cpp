@@ -98,7 +98,15 @@ void LkTracker::KalmanPredict()
     {
         bbox_.y = 0;
     }
-    if((bbox_.y + bbox_.height >= frame_height_))
+    if(bbox_.width < 0)
+    {
+        bbox_.width = 1;
+    }
+    if(bbox_.height < 0)
+    {
+        bbox_.height = 1;
+    }
+    if((bbox_.y + bbox_.height >= frame_height_) || bbox_.y >= frame_height_)
     {
         if(bbox_.y >= frame_height_)
         {
@@ -107,7 +115,7 @@ void LkTracker::KalmanPredict()
         }
         bbox_.height = frame_height_ - bbox_.y - 1;
     }
-    if((bbox_.x + bbox_.width >= frame_width_))
+    if((bbox_.x + bbox_.width >= frame_width_) || bbox_.x >= frame_width_)
     {
         if(bbox_.x >= frame_width_)
         {
@@ -116,7 +124,7 @@ void LkTracker::KalmanPredict()
         }
         bbox_.width = frame_width_ - bbox_.x - 1;
     }
-    
+    std::cout << "frame width frame height:" << frame_width_ << " " << frame_height_ << std::endl; 
 }
 
 void LkTracker::KalmanUpdate(cv::Rect _new_box)
@@ -245,10 +253,10 @@ void LkTracker::updateLkTracker(const cv::Mat& _frame)
 
     // Update bounding box
     std::cout << "  start updating bounding box" <<std::endl;
-    if(!first_time_)
-    {
-       KalmanPredict();
-    }
+//    if(!first_time_)
+//    {
+//        KalmanPredict();
+//    }
     int median_x = findMedian(vec_x);
     int median_y = findMedian(vec_y);
     std::vector<float> vec_scale;
@@ -313,9 +321,17 @@ void LkTracker::updateLkTracker(const cv::Mat& _frame)
         new_height = frame_height_ - new_y - 2;
     }
     cv::Rect new_box = cv::Rect(new_x, new_y, new_width, new_height);
-    bbox_ = new_box;
-    //KalmanUpdate(new_box);
+    std::cout << "new_box" << new_box << std::endl; 
+    //bbox_ = new_box;
+    KalmanUpdate(new_box);
     
+    if(!first_time_)
+    {
+        KalmanPredict();
+        std::cout << "kalman predict" << std::endl;
+    }
+    std::cout << "bbox" << bbox_ << std::endl;
+
     // get rid of points out of the bounding box
     std::cout << "  start getting rid of points out of box" << std::endl;
     for(auto iter = track_points_.begin(); iter != track_points_.end(); )
@@ -340,7 +356,7 @@ void LkTracker::updateLkTracker(const cv::Mat& _frame)
     }
 
     // get more keypoints in the bounding box if necessary
-    std::cout << "  get more points" << std::endl;
+    std::cout << "  get more points in box" << std::endl << bbox_ <<std::endl;
     if(track_points_.size() < MIN_TRACK_POINTS_NUM_)
     {
         track_points_.clear();
@@ -371,7 +387,7 @@ cv::Ptr<cv::FastFeatureDetector> LkTracker::detector_ = cv::FastFeatureDetector:
 
 TrackerManager::TrackerManager(cv::Mat _frame, std::vector<cv::Rect> _rois):
     ids_(0),
-    COST_THRESHOLD_(600)
+    COST_THRESHOLD_(30)
 {
     for(auto roi:_rois)
     {
@@ -535,6 +551,11 @@ int TrackerManager::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
     //std::cout << "rec1" << std::endl << _rec1 << std::endl;
     //std::cout << "rec2" << std::endl << _rec2 << std::endl;
     //std::cout << "score:" << score << std::endl;
+    
+    if(score == 0)
+    {
+        score = 1;
+    }
     return score;
 }
 

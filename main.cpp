@@ -6,7 +6,7 @@ int main( int argc, char** argv )
 {
     DetAndTrack dtObject;
 
-    //cv::VideoCapture cap("/home/lingkang/Videos/drone.mp4");
+    //cv::VideoCapture cap("/home/lingkang/Videos/band.mp4");
     cv::VideoCapture cap(0);
     cv::Mat frame;
     int cnt = 20;
@@ -24,7 +24,7 @@ int main( int argc, char** argv )
         cap >> frame;
 
         //uncomment the next line when reading from a video
-        //std::this_thread::sleep_for(std::chrono::milliseconds(30));
+        std::this_thread::sleep_for(std::chrono::milliseconds(35));
         std::vector<cv::Rect> boxes;
         std::vector<cv::Scalar> colors;
 

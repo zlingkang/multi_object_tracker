@@ -8,7 +8,7 @@ DetAndTrack::DetAndTrack():
     first_time_detection_(true)
 {
     face_cascade_.load("../haarcascade_frontalface_alt.xml");
-    detection_sleep_time_ = 200;
+    detection_sleep_time_ = 300;
     track_sleep_time_ = 30;
 }
 
