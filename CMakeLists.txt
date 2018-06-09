@@ -21,5 +21,5 @@ link_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_executable( single_thread_test lk_tracker_test.cpp lk_tracker.cpp munkres.cpp)
 target_link_libraries( single_thread_test ${OpenCV_LIBS})
 
-add_executable( multi_thread_det_and_track main.cpp lk_tracker.cpp munkres.cpp det_and_track.cpp)
+add_executable( multi_thread_det_and_track main.cpp lk_tracker.cpp object_detection.cpp munkres.cpp det_and_track.cpp)
 target_link_libraries( multi_thread_det_and_track ${OpenCV_LIBS})

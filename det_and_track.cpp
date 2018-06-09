@@ -7,9 +7,10 @@ DetAndTrack::DetAndTrack():
     get_new_detection_(false),
     first_time_detection_(true)
 {
-    face_cascade_.load("../haarcascade_frontalface_alt.xml");
+    //face_cascade_.load("../haarcascade_frontalface_alt.xml");
     detection_sleep_time_ = 300;
     track_sleep_time_ = 30;
+    object_detection_ptr_ = new ObjectDetection();
 }
 
 DetAndTrack::DetAndTrack(int _detection_sleep_time, int _track_sleep_time):
@@ -18,7 +19,8 @@ DetAndTrack::DetAndTrack(int _detection_sleep_time, int _track_sleep_time):
     detection_sleep_time_(_detection_sleep_time),
     track_sleep_time_(_track_sleep_time)
 {
-    face_cascade_.load("../haarcascade_frontalface_alt.xml");
+    //face_cascade_.load("../haarcascade_frontalface_alt.xml");
+    object_detection_ptr_ = new ObjectDetection();
 }
 
 void DetAndTrack::detectionTask()
@@ -30,8 +32,8 @@ void DetAndTrack::detectionTask()
         cv::Mat local_frame = current_frame_.clone();
         mutex_.unlock();
 
-        std::vector<cv::Rect> local_boxes;
-        face_cascade_.detectMultiScale(local_frame, local_boxes, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(30,30)); 
+        std::vector<cv::Rect> local_boxes = object_detection_ptr_->detectObject(local_frame);
+        //face_cascade_.detectMultiScale(local_frame, local_boxes, 1.1, 2, 0|CV_HAAR_SCALE_IMAGE, cv::Size(30,30)); 
         std::this_thread::sleep_for(std::chrono::milliseconds(detection_sleep_time_));
         
         std::lock_guard<std::mutex> lockGuard(mutex_);

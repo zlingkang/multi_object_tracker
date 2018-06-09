@@ -13,6 +13,7 @@ class TrackerManager;
 #include <mutex>
 
 #include "lk_tracker.h"
+#include "object_detection.h" 
 
 class DetAndTrack
 {
@@ -25,8 +26,9 @@ class DetAndTrack
     cv::Mat current_frame_;
     //cv::Mat last_frame_;
 
-    cv::CascadeClassifier face_cascade_;
-    
+    //cv::CascadeClassifier face_cascade_;
+    ObjectDetection* object_detection_ptr_;
+
     TrackerManager* track_manager_ptr_; 
 
     int detection_sleep_time_; //milliseconds
