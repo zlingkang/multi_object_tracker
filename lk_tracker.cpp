@@ -523,10 +523,8 @@ void TrackerManager::updateTrackersWithNewFrame(const cv::Mat& _frame)
     _frame.copyTo(last_frame_);
 }
 
-int TrackerManager::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
+float TrackerManager::getIOU(const cv::Rect _rec1, const cv::Rect _rec2)
 {
-    // score = (1 - iou) * dx/width * dy/height * 100
-
     auto max = [](int a, int b){return a>b?a:b;};
     auto min = [](int a, int b){return a<b?a:b;};
 
@@ -547,6 +545,14 @@ int TrackerManager::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
     int boxBArea = (_rec2.width+1)*(_rec2.height+1);
     float iou = float(interArea) / float(boxAArea + boxBArea - interArea);
 
+    return iou;
+}
+
+int TrackerManager::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
+{
+    // score = (1 - iou) * dx/width * dy/height * 100
+    float iou = getIOU(_rec1, _rec2);
+
     int x1 = _rec1.x + _rec1.width/2;
     int x2 = _rec2.x + _rec2.width/2;
     int y1 = _rec1.y + _rec1.height/2;
@@ -554,7 +560,6 @@ int TrackerManager::getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2)
     auto abs = [](float x){return x>0?x:-x;};
     float dx = abs(static_cast<float>(x2-x1));
     float dy = abs(static_cast<float>(y2-y1));
-
 
     int score = static_cast<int>((1.0-iou) * dx * dy * 100.0 / (_rec1.width * _rec1.height));
 
@@ -658,10 +663,23 @@ bool TrackerManager::updateTrackersWithNewDetectionResults(const std::vector<cv:
         if(!matched_dets[det_ind])
         {
             //std::cout << "new LkTracker " << current_frame_.cols << " " << det.width << " " << det.height << std::endl;
-            auto tracker_ptr = new LkTracker(last_frame_, det, ids_, USE_KF_);
-            std::cout << "new LkTracker get" << std::endl;
-            tracker_ptrs_.push_back(tracker_ptr);
-            ids_ = (ids_+1)%100000;
+            
+            bool duplicated = false;
+            for(auto tracker_ptr:tracker_ptrs_)
+            {
+                if(getIOU(tracker_ptr->bbox_, det) > 0.8)
+                {
+                    duplicated - true;
+                }
+            }
+            
+            if(!duplicated)
+            {
+                auto tracker_ptr = new LkTracker(last_frame_, det, ids_, USE_KF_);
+                std::cout << "new LkTracker get" << std::endl;
+                tracker_ptrs_.push_back(tracker_ptr);
+                ids_ = (ids_+1)%100000;
+            }
         }
         det_ind ++;
     }

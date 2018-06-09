@@ -99,6 +99,7 @@ class TrackerManager{
         cv::Mat last_frame_;
         std::vector<cv::Point2f> all_new_points_;
         int ids_;
+        float getIOU(const cv::Rect _rec1, const cv::Rect _rec2);
         int getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2);
         const int COST_THRESHOLD_;
         const bool USE_KF_; // use kalman filter
