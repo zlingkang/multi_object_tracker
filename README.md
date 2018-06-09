@@ -9,6 +9,7 @@ Object detection is slow, especially for embedded platforms. Tracking algorithm 
 
 # Description
 * The lk_tracker.cpp contains the tracker implementation. 
+* The object_detection.cpp contains an OpenCV face detector, you can modify the class to use other object detection. 
 * lk_tracker_test.cpp contains a simple test in a single-threaded setting. It requires opencv3 contrib to draw the initial bounding box. 
 Modify that if you do not have OpenCV 3 contrib. Or simply commment it out in CMakeLists.txt if you do not want it.
 * det_and_track.cpp contatins the setting to use our tracker and a face detector in a multi-threaded setting. The face detector here can be
