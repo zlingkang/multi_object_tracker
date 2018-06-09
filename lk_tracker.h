@@ -25,7 +25,7 @@
 
 class LkTracker{
     public:
-        LkTracker(const cv::Mat& _frame, const cv::Rect& _bbox, const int _tracker_id);
+        LkTracker(const cv::Mat& _frame, const cv::Rect& _bbox, const int _tracker_id, const bool _use_kf);
         void updateLkTracker(const cv::Mat& _frame);
         cv::Rect getBbox()
         {
@@ -73,7 +73,7 @@ class LkTracker{
         cv::Scalar color_;
 
         // kalman filter stuff
-        bool KF_ON_; // if do Kalman filter or not
+        const bool USE_KF_; // if do Kalman filter or not
         cv::KalmanFilter kf_;
         cv::Mat kf_state_; // x, y, xdot, ydot, w, h
         cv::Mat kf_measure_;
@@ -101,7 +101,8 @@ class TrackerManager{
         int ids_;
         int getMatchingScore(const cv::Rect _rec1, const cv::Rect _rec2);
         const int COST_THRESHOLD_;
-        
+        const bool USE_KF_; // use kalman filter
+
         friend class DetAndTrack;
 };
 

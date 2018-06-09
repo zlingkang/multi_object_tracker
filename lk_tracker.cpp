@@ -1,6 +1,7 @@
 #include "lk_tracker.h"
 
-LkTracker::LkTracker(const cv::Mat& _frame, const cv::Rect& _bbox, const int _tracker_id):
+LkTracker::LkTracker(const cv::Mat& _frame, const cv::Rect& _bbox, const int _tracker_id, const bool _use_kf):
+    USE_KF_(_use_kf),
     tracker_id_(_tracker_id),
     bbox_(_bbox),
     status_(true),
@@ -253,10 +254,6 @@ void LkTracker::updateLkTracker(const cv::Mat& _frame)
 
     // Update bounding box
     std::cout << "  start updating bounding box" <<std::endl;
-//    if(!first_time_)
-//    {
-//        KalmanPredict();
-//    }
     int median_x = findMedian(vec_x);
     int median_y = findMedian(vec_y);
     std::vector<float> vec_scale;
@@ -322,13 +319,25 @@ void LkTracker::updateLkTracker(const cv::Mat& _frame)
     }
     cv::Rect new_box = cv::Rect(new_x, new_y, new_width, new_height);
     std::cout << "new_box" << new_box << std::endl; 
-    //bbox_ = new_box;
-    KalmanUpdate(new_box);
     
+    bbox_ = new_box;
+    
+    if(USE_KF_)
+    {
+        KalmanUpdate(new_box);
+    }
+    else
+    {
+        bbox_ = new_box;
+    }
+
     if(!first_time_)
     {
-        KalmanPredict();
-        std::cout << "kalman predict" << std::endl;
+        if(USE_KF_)
+        {
+            KalmanPredict();
+            std::cout << "kalman predict" << std::endl;
+        }
     }
     std::cout << "bbox" << bbox_ << std::endl;
 
@@ -387,11 +396,12 @@ cv::Ptr<cv::FastFeatureDetector> LkTracker::detector_ = cv::FastFeatureDetector:
 
 TrackerManager::TrackerManager(cv::Mat _frame, std::vector<cv::Rect> _rois):
     ids_(0),
-    COST_THRESHOLD_(30)
+    COST_THRESHOLD_(100),
+    USE_KF_(true)
 {
     for(auto roi:_rois)
     {
-        auto tracker_ptr = new LkTracker(_frame, roi, ids_);
+        auto tracker_ptr = new LkTracker(_frame, roi, ids_, USE_KF_);
         tracker_ptrs_.push_back(tracker_ptr);
         ids_ = (ids_+1)%100000;
     }
@@ -614,7 +624,10 @@ bool TrackerManager::updateTrackersWithNewDetectionResults(const std::vector<cv:
                     matched = true;
                     tracker_ptrs_[i] -> missing_frames_ = 0;
                     tracker_ptrs_[i] -> bbox_ = _dets[j];
-                    tracker_ptrs_[i] -> KalmanUpdate(_dets[i]);
+                    if(USE_KF_)
+                    {
+                        tracker_ptrs_[i] -> KalmanUpdate(_dets[i]);
+                    }
                     std::cout << "tracker " << i << " matched with detector " << j << std::endl;
                     if(!tracker_ptrs_[i]->accepted_)
                     {
@@ -645,7 +658,7 @@ bool TrackerManager::updateTrackersWithNewDetectionResults(const std::vector<cv:
         if(!matched_dets[det_ind])
         {
             //std::cout << "new LkTracker " << current_frame_.cols << " " << det.width << " " << det.height << std::endl;
-            auto tracker_ptr = new LkTracker(last_frame_, det, ids_);
+            auto tracker_ptr = new LkTracker(last_frame_, det, ids_, USE_KF_);
             std::cout << "new LkTracker get" << std::endl;
             tracker_ptrs_.push_back(tracker_ptr);
             ids_ = (ids_+1)%100000;
